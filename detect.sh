@@ -1,0 +1,12 @@
+python  detect.py --source /workspace/dataset/video_futian/172.1.0.83/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.0.84/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.16.163/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.29.143/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.30.33/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.33.13/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.60.63/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.63.13/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.63.193/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.65.23/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.65.43/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  && \
+python  detect.py --source /workspace/dataset/video_futian/172.1.68.34/ --weights /workspace/py/ultralytics/yolov5_container/app/runs/train/exp11/weights/best.pt --conf 0.25 --device 1  

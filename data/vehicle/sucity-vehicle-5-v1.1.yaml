@@ -1,0 +1,53 @@
+# data/sucity-19.yaml
+# COCO 2017 dataset http://cocodataset.org
+# Train command: python train.py --data coco.yaml
+# Default dataset location is next to /yolov5:
+#   /parent_folder
+#     /coco
+#     /yolov5
+
+
+# download command/URL (optional)
+# download: bash data/scripts/get_coco.sh
+
+# train and val data as 1) directory: path/images/, 2) file: path/images.txt, or 3) list: [path1/images/, path2/images/]
+# train: /DATASET/SUCITY/SUCITY-DETEC/VOCdevkitszcity1_specialcar/2007_train.txt  # 118287 images
+train: [/workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/baoan_2d_220801_sub1/VOC2007/JPEGImages,
+        /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/VOCdevkitszcity1_specialcar_sub1/VOC2007/JPEGImages,
+        /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/voc_2007_2012_Pedestrain/VOCdevkit/VOC2007/JPEGImages,
+        /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/voc_2007_2012_Pedestrain/VOCdevkit/VOC2012/JPEGImages,        
+]
+
+# val: /DATASET/SUCITY/SUCITY-DETEC/VOCdevkitszcity1_specialcar/2007_val.txt  # 5000 images
+val:  [
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_2d_220801_sub2/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_jiaolian/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/futian_special/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/task_baoan-2021_09_27_13_45_46/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/VOCdevkitszcity1_specialcar_sub2/VOC2007/JPEGImages,
+]
+
+# test: /DATASET/SUCITY/SUCITY-DETEC/VOCdevkitszcity1_specialcar/2007_test.txt # 20288 of 40670 images, submit to https://competitions.codalab.org/competitions/20794
+test:  [
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_2d_220801_sub2/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_jiaolian/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/futian_special/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/task_baoan-2021_09_27_13_45_46/VOC2007/JPEGImages,
+  /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/VOCdevkitszcity1_specialcar_sub2/VOC2007/JPEGImages,
+]
+
+# number of classes
+nc: 5
+
+# class names
+names: ["Car", 
+          "Bus", 
+          "Cycle", 
+          "Pedestrian", 
+          "Truck", ] # 所有类别信息 5 
+# Print classes
+# with open('data/coco.yaml') as f:
+#   d = yaml.load(f, Loader=yaml.FullLoader)  # dict
+#   for i, x in enumerate(d['names']):
+#     print(i, x)
+
