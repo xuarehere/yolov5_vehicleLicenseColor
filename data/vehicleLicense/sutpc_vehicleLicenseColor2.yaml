@@ -1,0 +1,36 @@
+# Ultralytics YOLO 🚀, AGPL-3.0 license
+# COCO128 dataset https://www.kaggle.com/ultralytics/coco128 (first 128 images from COCO train2017) by Ultralytics
+# Example usage: yolo train data=coco128.yaml
+# parent
+# ├── ultralytics
+# └── datasets
+#     └── coco128  ← downloads here (7 MB)
+
+
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+# path: ../datasets/coco128  # dataset root dir
+train: [/workspace/dataset/vehicleLicenseColor/JPEGImages,
+        # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/VOCdevkitszcity1_specialcar_sub1/VOC2007/JPEGImages,
+        # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/voc_2007_2012_Pedestrain/VOCdevkit/VOC2007/JPEGImages,
+        # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/voc_2007_2012_Pedestrain/VOCdevkit/VOC2012/JPEGImages,        
+]
+val: [
+  /workspace/dataset/vehicleLicenseColor/JPEGImages,
+  # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_2d_220801_sub2/VOC2007/JPEGImages,
+  # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_jiaolian/VOC2007/JPEGImages,
+  # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/futian_special/VOC2007/JPEGImages,
+  # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/task_baoan-2021_09_27_13_45_46/VOC2007/JPEGImages,
+  # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/VOCdevkitszcity1_specialcar_sub2/VOC2007/JPEGImages,
+]
+test:  [
+  /workspace/dataset/vehicleLicenseColor/JPEGImages,
+]
+# number of classes
+nc: 2
+
+# class names
+names: ["blue", 
+          "green", 
+        ] # 所有类别信息 2
+
+

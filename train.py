@@ -497,7 +497,7 @@ if __name__ == '__main__':
     parser.add_argument('--name', default='exp', help='save to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--quad', action='store_true', help='quad dataloader')
-    parser.add_argument('--save_nums', type=int, default=1000, help='save number of pt for modle, max 100')
+    parser.add_argument('--save_nums', type=int, default=10, help='save number of pt for modle, max 100')
     opt = parser.parse_args()
 
     # Set DDP variables

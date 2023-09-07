@@ -6,6 +6,7 @@ import cv2
 import torch
 import torch.backends.cudnn as cudnn
 from numpy import random
+import numpy as np
 
 from models.experimental import attempt_load
 from utils.datasets import LoadStreams, LoadImages
@@ -17,7 +18,8 @@ from utils.torch_utils import select_device, load_classifier, time_synchronized
 
 def detect(save_img=False):
 
-    is_class_nms = True     # 进行类别nams处理
+    # is_class_nms = False     # 进行类别nams处理
+    is_class_nms = opt.is_class_nms     # 进行类别nams处理
     source, weights, view_img, save_txt, imgsz = opt.source, opt.weights, opt.view_img, opt.save_txt, opt.img_size
     webcam = source.isnumeric() or source.endswith('.txt') or source.lower().startswith(
         ('rtsp://', 'rtmp://', 'http://'))
@@ -105,7 +107,9 @@ def detect(save_img=False):
                     s += f'{n} {names[int(c)]}s, '  # add to string
 
                 # Write results
+                id_conf = []
                 for *xyxy, conf, cls in reversed(det):
+                    id_conf = [f"{cls}, {conf}\n"]
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                         line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
@@ -113,9 +117,33 @@ def detect(save_img=False):
                             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
                     if save_img or view_img:  # Add bbox to image
-                        label = f'{names[int(cls)]} {conf:.2f}'
+                        # label = f'{names[int(cls)]} {conf:.2f}'
+                        label = f'{int(cls)} {conf:.2f}'
                         # label = f'{names[int(cls)]}'
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
+                if id_conf:
+                    id_conf_str = '\n'.join(id_conf)
+                    position = (10, 30)  # 文本左上角的坐标
+                    font = cv2.FONT_HERSHEY_SIMPLEX  # 文本字体
+                    font_scale = 0.5  # 字体缩放因子
+                    font_color = (255, 255, 255)  # 字体颜色，白色
+                    thickness = 2  # 字体线宽
+                    
+                    # 创建一个和图像大小一致的透明图层
+                    overlay = im0.copy()
+                    # 创建一个半透明的颜色填充区域
+                    # overlay_height = len(id_conf) * 30 + 40  # 根据文本行数计算区域高度
+                    overlay_height = len(id_conf) * 6   # 根据文本行数计算区域高度
+                    overlay_color = (0, 0, 255)  # 半透明颜色，这里是红色
+                    overlay_alpha = 0.5  # 透明度
+                    overlay_rect = np.array([(position[0] - 15, position[1] - 15),
+                                            (position[0] + 300, position[1] - 5),
+                                            (position[0] + 300, position[1] + overlay_height),
+                                            (position[0] - 5, position[1] + overlay_height)], dtype=np.int32)
+                    cv2.fillPoly(overlay, [overlay_rect], overlay_color)
+                    cv2.addWeighted(overlay, overlay_alpha, im0, 1 - overlay_alpha, 0, im0)                    
+                    cv2.putText(im0, id_conf_str, position, font, font_scale, font_color, thickness, lineType=cv2.LINE_AA)
+                    # cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
             # Print time (inference + NMS)
             print(f'{s}Done. ({t2 - t1:.3f}s)')
@@ -266,6 +294,7 @@ if __name__ == '__main__':
     parser.add_argument('--project', default='runs/detect', help='save results to project/name')
     parser.add_argument('--name', default='exp', help='save results to project/name')
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
+    parser.add_argument('--is-class-nms', action='store_true', help='')
     opt = parser.parse_args()
     print(opt)
 
