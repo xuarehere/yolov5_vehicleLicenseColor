@@ -88,9 +88,7 @@ def plot_one_box_v2(x, img, color=None, label=None, line_thickness=None):
         else:
             cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
-    
-
-def plot_one_box(x, img, color=None, label=None, line_thickness=None):
+def plot_one_box_default(x, img, color=None, label=None, line_thickness=None):
     flag_specific = False
     # Plots one bounding box on image img
     tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
@@ -109,6 +107,27 @@ def plot_one_box(x, img, color=None, label=None, line_thickness=None):
             cv2.putText(img, '{}'.format("illegal parking") , (c1[0], c1[1] - 2), 0, tl / 3, [0, 0, 255], thickness=tf, lineType=cv2.LINE_AA)
         else:
             cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+       
+
+def plot_one_box(x, img, color=None, label=None, line_thickness=None):
+    flag_specific = False
+    # Plots one bounding box on image img
+    tl = line_thickness or round(0.002 * (img.shape[0] + img.shape[1]) / 2) + 1  # line/font thickness
+    
+    color = color or [random.randint(0, 255) for _ in range(3)]
+    c1, c2 = (int(x[0]), int(x[1])), (int(x[2]), int(x[3]))
+    cv2.rectangle(img, c1, c2, color, thickness=1, lineType=cv2.LINE_AA)
+    # if label:
+    #     tf = max(tl - 1, 1)  # font thickness
+    #     t_size = cv2.getTextSize(label, 0, fontScale=tl / 3, thickness=tf)[0]
+    #     c2 = c1[0] + t_size[0], c1[1] - t_size[1] - 3
+    #     cv2.rectangle(img, c1, c2, color, -1, cv2.LINE_AA)  # filled
+    #     if 'Truck' in label and flag_specific:
+    #         font = cv2.FONT_HERSHEY_SIMPLEX  # 定义字体
+    #         # cv2.putText(img, label + '{}'.format("illegal parking") , (c1[0], c1[1] - 2), 0, tl / 3, [0, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
+    #         cv2.putText(img, '{}'.format("illegal parking") , (c1[0], c1[1] - 2), 0, tl / 3, [0, 0, 255], thickness=tf, lineType=cv2.LINE_AA)
+    #     else:
+    #         cv2.putText(img, label, (c1[0], c1[1] - 2), 0, tl / 3, [225, 255, 255], thickness=tf, lineType=cv2.LINE_AA)
 
     
 
@@ -200,7 +219,7 @@ def plot_images(images, targets, paths=None, fname='images.jpg', names=None, max
                 cls = names[cls] if names else cls
                 if labels or conf[j] > 0.25:  # 0.25 conf thresh
                     label = '%s' % cls if labels else '%s %.1f' % (cls, conf[j])
-                    plot_one_box(box, mosaic, label=label, color=color, line_thickness=tl)
+                    plot_one_box(box, mosaic, label=None, color=color, line_thickness=tl)
 
         # Draw image filename labels
         if paths:
