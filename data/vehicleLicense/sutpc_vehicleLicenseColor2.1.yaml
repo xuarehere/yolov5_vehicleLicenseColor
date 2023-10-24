@@ -15,7 +15,7 @@ train: [/workspace/dataset/vehicleLicenseColor/train/JPEGImages,
         # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/train/voc_2007_2012_Pedestrain/VOCdevkit/VOC2012/JPEGImages,        
 ]
 val: [
-  /workspace/dataset/vehicleLicenseColor/train/JPEGImages,
+  /workspace/dataset/vehicleLicenseColor/val/images,
   # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_2d_220801_sub2/VOC2007/JPEGImages,
   # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/baoan_jiaolian/VOC2007/JPEGImages,
   # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/futian_special/VOC2007/JPEGImages,
@@ -23,7 +23,7 @@ val: [
   # /workspace/dataset/sutpc_object_detections_datasets_vehicle_count/val/VOCdevkitszcity1_specialcar_sub2/VOC2007/JPEGImages,
 ]
 test:  [
-  /workspace/dataset/vehicleLicenseColor/train/JPEGImages,
+  /workspace/dataset/vehicleLicenseColor/val/images,
 ]
 # number of classes
 nc: 2

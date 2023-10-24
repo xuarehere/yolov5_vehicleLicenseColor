@@ -182,6 +182,23 @@ def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     return coords
 
 
+def unscale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
+    if ratio_pad is None:
+        gain = min(img1_shape[0] / img0_shape[0], img1_shape[1] / img0_shape[1])
+        pad = (
+            (img1_shape[1] - img0_shape[1] * gain) / 2,
+            (img1_shape[0] - img0_shape[0] * gain) / 2
+        )
+    else:
+        gain = ratio_pad[0][0]
+        pad = ratio_pad[1]
+
+    # 逆操作：乘以尺度变化比例，然后加上填充值
+    coords[:, [0, 2]] = coords[:, [0, 2]] * gain + pad[0]
+    coords[:, [1, 3]] = coords[:, [1, 3]] * gain + pad[1]
+
+    return coords
+
 def clip_coords(boxes, img_shape):
     # Clip bounding xyxy bounding boxes to image shape (height, width)
     boxes[:, 0].clamp_(0, img_shape[1])  # x1

@@ -56,7 +56,7 @@ def exif_size(img):
 
 
 def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=False, cache=False, pad=0.0, rect=False,
-                      rank=-1, world_size=1, workers=8, image_weights=False, quad=False):
+                      rank=-1, world_size=1, workers=8, image_weights=False, quad=False, val_trt_output_dir=None, val_server_dir=None):
     # Make sure only the first process in DDP process the dataset first, and the following others can use the cache
     with torch_distributed_zero_first(rank):
         dataset = LoadImagesAndLabels(path, imgsz, batch_size,
@@ -68,7 +68,7 @@ def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=Fa
                                       stride=int(stride),
                                       pad=pad,
                                       rank=rank,
-                                      image_weights=image_weights)
+                                      image_weights=image_weights, val_trt_output_dir=val_trt_output_dir, val_server_dir=val_server_dir)
 
     batch_size = min(batch_size, len(dataset))
     nw = min([os.cpu_count() // world_size, batch_size if batch_size > 1 else 0, workers])  # number of workers
@@ -331,16 +331,24 @@ class LoadStreams:  # multiple IP or RTSP cameras
         return 0  # 1E12 frames = 32 streams at 30 FPS for 30 years
 
 
+# def img2label_paths(img_paths):
+#     # Define label paths as a function of image paths
+#     # sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
+#     sa, sb = os.sep + 'JPEGImages' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
+#     return [x.replace(sa, sb, 1).replace('.' + x.split('.')[-1], '.txt') for x in img_paths]
 def img2label_paths(img_paths):
     # Define label paths as a function of image paths
-    # sa, sb = os.sep + 'images' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
-    sa, sb = os.sep + 'JPEGImages' + os.sep, os.sep + 'labels' + os.sep  # /images/, /labels/ substrings
-    return [x.replace(sa, sb, 1).replace('.' + x.split('.')[-1], '.txt') for x in img_paths]
+    if f'{os.sep}images' in list(img_paths)[0]:
+        sa, sb = f'{os.sep}images{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
+    elif f'{os.sep}JPEGImages' in list(img_paths)[0]:
+        sa, sb = f'{os.sep}JPEGImages{os.sep}', f'{os.sep}labels{os.sep}'  # /images/, /labels/ substrings
+    return [sb.join(x.rsplit(sa, 1)).rsplit('.', 1)[0] + '.txt' for x in img_paths]
+
 
 
 class LoadImagesAndLabels(Dataset):  # for training/testing
     def __init__(self, path, img_size=640, batch_size=16, augment=False, hyp=None, rect=False, image_weights=False,
-                 cache_images=False, single_cls=False, stride=32, pad=0.0, rank=-1):
+                 cache_images=False, single_cls=False, stride=32, pad=0.0, rank=-1, val_trt_output_dir=None, val_server_dir=None):
         self.img_size = img_size
         self.augment = augment
         self.hyp = hyp
@@ -349,6 +357,13 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         self.mosaic = self.augment and not self.rect  # load 4 images at a time into a mosaic (only during training)
         self.mosaic_border = [-img_size // 2, -img_size // 2]
         self.stride = stride
+        if val_trt_output_dir==None or val_server_dir ==None:
+            self.is_val_trt_output = False
+        else:
+            self.is_val_trt_output = True
+            self.val_trt_output_dir = val_trt_output_dir
+            self.val_server_dir = val_server_dir
+            self.val_trt_output_files = []
 
         try:
             f = []  # image files
@@ -368,16 +383,30 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         except Exception as e:
             raise Exception('Error loading data from %s: %s\nSee %s' % (path, e, help_url))
 
-        # Check cache
-        self.label_files = img2label_paths(self.img_files)  # labels
-        cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')  # cached labels
-        if cache_path.is_file():
-            cache = torch.load(cache_path)  # load
-            if cache['hash'] != get_hash(self.label_files + self.img_files) or 'results' not in cache:  # changed
-                cache = self.cache_labels(cache_path)  # re-cache
+        if self.is_val_trt_output:
+            # read val image
+        
+            file_list = os.listdir(self.val_trt_output_dir)
+            file_list.sort()
+            # trt 的结果
+            self.val_trt_output_files =  [ os.path.join(self.val_trt_output_dir, item) for item in file_list]
+            # 映射到服务器中的图片与标签
+            self.img_files = [ os.path.join(self.val_server_dir, item[:-4]) for item in file_list]
+            self.label_files = img2label_paths(self.img_files)  # labels
+            cache_path = Path(self.label_files[0]).parent.with_suffix('.cache') 
+            cache = self.cache_labels(cache_path)  # re-cache
         else:
-            cache = self.cache_labels(cache_path)  # cache
-
+            # normal read
+            # Check cache
+            self.label_files = img2label_paths(self.img_files)  # labels
+            cache_path = Path(self.label_files[0]).parent.with_suffix('.cache')  # cached labels
+            if cache_path.is_file():
+                cache = torch.load(cache_path)  # load
+                if cache['hash'] != get_hash(self.label_files + self.img_files) or 'results' not in cache:  # changed
+                    cache = self.cache_labels(cache_path)  # re-cache
+            else:
+                cache = self.cache_labels(cache_path)  # cache
+        
         # Display cache
         [nf, nm, ne, nc, n] = cache.pop('results')  # found, missing, empty, corrupted, total
         desc = f"Scanning '{cache_path}' for images and labels... {nf} found, {nm} missing, {ne} empty, {nc} corrupted"
@@ -411,6 +440,8 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
             self.img_files = [self.img_files[i] for i in irect]
             self.label_files = [self.label_files[i] for i in irect]
             self.labels = [self.labels[i] for i in irect]
+            if self.is_val_trt_output:
+                self.val_trt_output_files = [self.val_trt_output_files[i] for i in irect]
             self.shapes = s[irect]  # wh
             ar = ar[irect]
 
@@ -493,6 +524,42 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
     #     #self.shuffled_vector = np.random.permutation(self.nF) if self.augment else np.arange(self.nF)
     #     return self
 
+    def read_txt(self, file_path):
+        """
+        输入坐标  # id, x, y, width, height, conf ，其中xy指的是图像的左上角的位置
+        
+        
+        输出坐标格式x1y1x2y2, conf, cls
+        
+        x1y1---------
+        |            |  
+        |            |  
+        -------------x2y2
+        """
+        with open(file_path, 'r') as f:
+            
+            l = np.array([x.split() for x in f.read().strip().splitlines()], dtype=np.float32)  # labels
+            # 读入坐标格式
+            # id, x, y, width, height, conf ，其中xy指的是图像的左上角的位置
+            # 坐标转化
+            # x1, y1 = l[1], l[2]
+            # x2, y2 = l[1] + l[3], l[2] + l[4], # 右下角坐标
+            data = np.zeros(l.shape)
+            # x1y1
+            data[:, 0] = l[:, 1]
+            data[:, 1] = l[:, 2]
+            
+            # x2y2
+            data[:, 2] = np.sum(l[:, [1, 3]], axis=1)
+            data[:, 3] = np.sum(l[:, [2, 4]], axis=1)
+            # conf
+            data[:, 4] = l[:, 5]
+            # id
+            data[:, 5] = l[:, 0]
+
+            
+        return data
+    
     def __getitem__(self, index):
         index = self.indices[index]  # linear, shuffled, or image_weights
 
@@ -573,8 +640,13 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         # Convert
         img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
         img = np.ascontiguousarray(img)
-
-        return torch.from_numpy(img), labels_out, self.img_files[index], shapes
+        
+        # self.is_val_trt_output = False
+        if self.is_val_trt_output:
+            return torch.from_numpy(img), labels_out, self.img_files[index], {0:shapes,
+                                                                              1:self.read_txt(self.val_trt_output_files[index])}
+        else:
+            return torch.from_numpy(img), labels_out, self.img_files[index], shapes
 
     @staticmethod
     def collate_fn(batch):
@@ -613,6 +685,8 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
 # Ancillary functions --------------------------------------------------------------------------------------------------
 def load_image(self, index):
     # loads 1 image from dataset, returns img, original hw, resized hw
+    # if val_trt:
+    #     dir_path = 111
     img = self.imgs[index]
     if img is None:  # not cached
         path = self.img_files[index]
@@ -1036,3 +1110,4 @@ def autosplit(path='../coco128', weights=(0.9, 0.1, 0.0)):  # from utils.dataset
         if img.suffix[1:] in img_formats:
             with open(path / txt[i], 'a') as f:
                 f.write(str(img) + '\n')  # add image to txt file
+

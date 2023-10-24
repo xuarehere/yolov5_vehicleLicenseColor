@@ -110,6 +110,7 @@ def detect(save_img=False):
                 id_conf = []
                 for *xyxy, conf, cls in reversed(det):
                     id_conf.append(f"{int(cls)}, {names[int(cls)]}, {str(float(conf))[:5]}")
+                    # id_conf.append(f"{names[int(cls)]}")
                     if save_txt:  # Write to file
                         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                         line = (cls, *xywh, conf) if opt.save_conf else (cls, *xywh)  # label format
@@ -122,6 +123,7 @@ def detect(save_img=False):
                         # label = f'{names[int(cls)]}'
                         plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
                 if id_conf:
+                    # put text on the left top windown
                     id_conf_str = '\n'.join(id_conf)
                     position = (10, 30)  # 文本左上角的坐标
                     font = cv2.FONT_HERSHEY_SIMPLEX  # 文本字体
@@ -136,10 +138,14 @@ def detect(save_img=False):
                     overlay_height = len(id_conf) * 6   # 根据文本行数计算区域高度
                     overlay_color = (0, 0, 255)  # 半透明颜色，这里是红色
                     overlay_alpha = 0.5  # 透明度
-                    overlay_rect = np.array([(position[0] - 15, position[1] - 15),
-                                            (position[0] + 300, position[1] - 5),
-                                            (position[0] + 300, position[1] + overlay_height),
-                                            (position[0] - 5, position[1] + overlay_height)], dtype=np.int32)
+                    # overlay_rect = np.array([(position[0] - 15, position[1] - 15),
+                    #                         (position[0] + 300, position[1] - 5),
+                    #                         (position[0] + 300, position[1] + overlay_height),
+                    #                         (position[0] - 15, position[1] + overlay_height)], dtype=np.int32)
+                    overlay_rect = np.array([(position[0] - 5, position[1] - 15),
+                                            (position[0] + 100, position[1] - 15),
+                                            (position[0] + 100, position[1] + overlay_height),
+                                            (position[0] - 5, position[1] + overlay_height)], dtype=np.int32)                    
                     cv2.fillPoly(overlay, [overlay_rect], overlay_color)
                     cv2.addWeighted(overlay, overlay_alpha, im0, 1 - overlay_alpha, 0, im0)                    
                     cv2.putText(im0, id_conf_str, position, font, font_scale, font_color, thickness, lineType=cv2.LINE_AA)

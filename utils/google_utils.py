@@ -18,6 +18,8 @@ def gsutil_getsize(url=''):
 
 def attempt_download(weights):
     # Attempt to download pretrained weights if not found locally
+    if os.path.isfile(weights):
+        return
     weights = str(weights).strip().replace("'", '')
     file = Path(weights).name.lower()
 
